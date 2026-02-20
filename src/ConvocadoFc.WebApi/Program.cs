@@ -25,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 ValidatorOptions.Global.LanguageManager.Culture = new CultureInfo("pt-BR");
 
