@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ConvocadoFc.Application/ConvocadoFc.Application.csproj" />
+    <Project Path="src/ConvocadoFc.Domain/ConvocadoFc.Domain.csproj" />
+    <Project Path="src/ConvocadoFc.Infrastructure/ConvocadoFc.Infrastructure.csproj" />
+    <Project Path="src/ConvocadoFc.WebApi/ConvocadoFc.WebApi.csproj" />
+  </Folder>
+</Solution>
