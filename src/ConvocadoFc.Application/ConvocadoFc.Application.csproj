@@ -16,4 +16,15 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Abstractions\Notifications\NotificationChannel.cs" />
+    <Compile Remove="Abstractions\Notifications\NotificationRequest.cs" />
+    <Compile Remove="Abstractions\Notifications\EmailMessage.cs" />
+    <Compile Remove="Abstractions\Notifications\EmailTemplateData.cs" />
+    <Compile Remove="Abstractions\Notifications\INotificationService.cs" />
+    <Compile Remove="Abstractions\Notifications\INotificationProvider.cs" />
+    <Compile Remove="Abstractions\Notifications\IMessageTransport.cs" />
+    <Compile Remove="Abstractions\Notifications\IEmailTemplateRenderer.cs" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Convocado - Notificação</title>
+    <style>
+        /* Reset básico para clientes de email */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse !important; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F8F9FA; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        /* Estilos Responsivos */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; margin: auto !important; }
+            .hero-text { font-size: 20px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F9FA;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <!-- Header / Logo -->
+        <tr>
+            <td align="center" style="padding: 40px 0 30px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container">
+                    <tr>
+                        <td align="center" style="font-size: 24px; font-weight: bold; color: #1A1A1A; letter-spacing: -1px;">
+                            Você foi <span style="color: #2D5A27;">CONVOCADO.</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Hero Section: Frase de Efeito -->
+        <tr>
+            <td align="center" style="padding-bottom: 30px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container">
+                    <tr>
+                        <td align="center" style="padding: 0 40px;">
+                            <h1 class="hero-text" style="margin: 0; color: #1A1A1A; font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px;">
+                                Onde a organização entra em campo e a vitória começa no <span style="color: #2D5A27;">elenco.</span>
+                            </h1>
+                            <p style="margin: 15px 0 0 0; color: #6B7280; font-size: 16px; line-height: 1.5;">
+                                Sua escalação, suas regras, sua transparência.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Conteúdo Principal -->
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container">
+                    <tr>
+                        <td align="center" style="padding: 0 20px;">
+                            <!-- Placeholder de Conteúdo Dinâmico (Partial) -->
+                            {{Content}}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Rodapé -->
+        <tr>
+            <td align="center" style="padding: 50px 0 40px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container">
+                    <tr>
+                        <td align="center" style="padding: 0 20px;">
+                            <hr style="border: 0; border-top: 1px solid #E5E7EB; margin-bottom: 20px;">
+                            <p style="margin: 0; color: #9CA3AF; font-size: 12px; line-height: 18px; font-weight: 500;">
+                                &copy; 2024 Convocado - Gestão Esportiva Inteligente
+                            </p>
+                            <p style="margin: 5px 0 0 0; color: #9CA3AF; font-size: 11px;">
+                                Respeite o manto. Organize o time. Jogue limpo.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
