@@ -1,3 +1,7 @@
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace ConvocadoFc.Application.Abstractions;
 
 public interface IApplicationDbContext

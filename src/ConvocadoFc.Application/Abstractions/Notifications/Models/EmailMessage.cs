@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ConvocadoFc.Application.Abstractions.Notifications.Models;
 
 public sealed record EmailMessage(

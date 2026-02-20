@@ -1,5 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using ConvocadoFc.Application.Handlers.Modules.Users.Interfaces;
+using ConvocadoFc.Application.Handlers.Modules.Users.Implementations;
 
 namespace ConvocadoFc.Application;
 
@@ -8,6 +10,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+        services.AddScoped<IRegisterUserHandler, RegisterUserHandler>();
 
         return services;
     }

@@ -25,6 +25,25 @@
 - Cada módulo deve ser separado por pastas.
 - Cada módulo deve possuir sua estrutura de pastas individuais para garantir organização e isolamento.
 
+### Estrutura Atual por Módulos (estado do projeto)
+- **Application**: Handlers por módulo em `ConvocadoFc.Application/Handlers/Modules/[Modulo]/` com subpastas `Interfaces`, `Implementations`, `Models`.
+  - Users: `IRegisterUserHandler` + `RegisterUserHandler` + models de comando/resultado.
+  - Authentication: `IJwtTokenService`, `IRefreshTokenManager` e `AuthConstants`.
+  - Notifications: `INotificationService`, `INotificationProvider`, `IMessageTransport`, `IEmailTemplateRenderer` + models de notificação.
+  - Shared: `IAppUrlProvider` para URLs do App.
+- **Domain**: modelos por módulo em `ConvocadoFc.Domain/Models/Modules/[Modulo]/`.
+  - Users (Identity) e Notifications (logs/reasons/channels).
+- **Infrastructure**: implementações por módulo em `ConvocadoFc.Infrastructure/Modules/[Modulo]/`.
+  - Authentication (JWT, refresh tokens) e Notifications (email provider, templates).
+- **WebApi**: endpoints por módulo em `ConvocadoFc.WebApi/Modules/[Modulo]/`.
+  - Authentication e Users (register, roles, auth flows).
+
+### Schemas por módulo (Banco de Dados)
+- Cada módulo possui schema dedicado no banco.
+- Mapeamento atual no EF Core:
+  - Users schema: tabelas de Identity.
+  - Notifications schema: `NotificationLogs`.
+
 ## 3. Padrões de Comunicação e Resposta
 ### HTTP
 - GET: recuperação

@@ -1,5 +1,8 @@
 using ConvocadoFc.Domain.Notifications;
 
+using System;
+using System.Collections.Generic;
+
 namespace ConvocadoFc.Application.Abstractions.Notifications.Models;
 
 public sealed record NotificationRequest(

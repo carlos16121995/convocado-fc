@@ -27,4 +27,13 @@
     <Compile Remove="Abstractions\Notifications\IEmailTemplateRenderer.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Abstractions\Authentication\**\*.cs" />
+    <Compile Remove="Options\AppUrlOptions.cs" />
+    <Compile Remove="Abstractions\AppUrls\**\*.cs" />
+    <Compile Remove="Modules\Authentication\**\*.cs" />
+    <Compile Remove="Modules\Users\Handlers\**\*.cs" />
+    <Compile Remove="Abstractions\Notifications\**\*.cs" />
+  </ItemGroup>
+
 </Project>

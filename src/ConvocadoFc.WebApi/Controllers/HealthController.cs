@@ -1,10 +1,12 @@
 using ConvocadoFc.Domain.Shared;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ConvocadoFc.WebApi.Controllers;
 
 [ApiController]
-[Route("api/health")]
+[Route("api/[controller]")]
 public class HealthController : ControllerBase
 {
     [HttpGet]

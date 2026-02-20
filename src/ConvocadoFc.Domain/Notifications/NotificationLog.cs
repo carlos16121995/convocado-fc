@@ -1,3 +1,5 @@
+using System;
+
 namespace ConvocadoFc.Domain.Notifications;
 
 public sealed class NotificationLog

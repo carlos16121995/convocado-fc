@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace ConvocadoFc.Application.Abstractions.Notifications.Interfaces;
 
 public interface IMessageTransport<in TMessage> where TMessage : class

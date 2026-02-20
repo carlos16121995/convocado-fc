@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ConvocadoFc.Domain.Shared;
 
 public record ApiResponse
