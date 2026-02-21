@@ -1,9 +1,10 @@
+using ConvocadoFc.Application.Handlers.Modules.Users.Interfaces;
+using ConvocadoFc.Application.Handlers.Modules.Users.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Domain.Shared;
 using ConvocadoFc.WebApi.Modules.Users.Models;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ConvocadoFc.WebApi.Modules.Users.Controllers;
@@ -14,10 +15,9 @@ namespace ConvocadoFc.WebApi.Modules.Users.Controllers;
 /// </summary>
 [ApiController]
 [Route("api")]
-public sealed class RolesController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : ControllerBase
+public sealed class RolesController(IUserRolesHandler userRolesHandler) : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
+    private readonly IUserRolesHandler _userRolesHandler = userRolesHandler;
 
     /// <summary>
     /// Lista as roles disponíveis no sistema.
@@ -30,7 +30,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         StatusCode = StatusCodes.Status200OK,
         Success = true,
         Message = "Roles disponíveis.",
-        Data = SystemRoles.All.ToList()
+        Data = _userRolesHandler.ListRoles().ToList()
     });
 
     /// <summary>
@@ -41,9 +41,14 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
     public async Task<IActionResult> AssignRole([FromRoute] Guid userId, [FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var normalizedRole = NormalizeRole(request.Role);
-        if (!SystemRoles.All.Contains(normalizedRole))
+        var result = await _userRolesHandler.AssignRoleAsync(new AssignUserRoleCommand(
+            userId,
+            request.Role,
+            User.IsInRole(SystemRoles.Master),
+            User.IsInRole(SystemRoles.Admin)),
+            cancellationToken);
+
+        if (result.Status == EUserRoleOperationStatus.InvalidRole)
         {
             return BadRequest(new ApiResponse
             {
@@ -53,13 +58,12 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             });
         }
 
-        if (!await CanManageRoleAsync(normalizedRole))
+        if (result.Status == EUserRoleOperationStatus.Forbidden)
         {
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
+        if (result.Status == EUserRoleOperationStatus.UserNotFound)
         {
             return NotFound(new ApiResponse
             {
@@ -69,7 +73,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             });
         }
 
-        if (!await _roleManager.RoleExistsAsync(normalizedRole))
+        if (result.Status == EUserRoleOperationStatus.RoleNotConfigured)
         {
             return BadRequest(new ApiResponse
             {
@@ -79,10 +83,9 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             });
         }
 
-        var result = await _userManager.AddToRoleAsync(user, normalizedRole);
-        if (!result.Succeeded)
+        if (result.Status != EUserRoleOperationStatus.Success)
         {
-            return BadRequest(ToApiResponse(result));
+            return BadRequest(ToApiResponse(result.Errors));
         }
 
         return Ok(new ApiResponse
@@ -101,9 +104,14 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
     public async Task<IActionResult> RemoveRole([FromRoute] Guid userId, [FromRoute] string role, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var normalizedRole = NormalizeRole(role);
-        if (!SystemRoles.All.Contains(normalizedRole))
+        var result = await _userRolesHandler.RemoveRoleAsync(new RemoveUserRoleCommand(
+            userId,
+            role,
+            User.IsInRole(SystemRoles.Master),
+            User.IsInRole(SystemRoles.Admin)),
+            cancellationToken);
+
+        if (result.Status == EUserRoleOperationStatus.InvalidRole)
         {
             return BadRequest(new ApiResponse
             {
@@ -113,13 +121,12 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             });
         }
 
-        if (!await CanManageRoleAsync(normalizedRole))
+        if (result.Status == EUserRoleOperationStatus.Forbidden)
         {
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
+        if (result.Status == EUserRoleOperationStatus.UserNotFound)
         {
             return NotFound(new ApiResponse
             {
@@ -129,10 +136,9 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             });
         }
 
-        var result = await _userManager.RemoveFromRoleAsync(user, normalizedRole);
-        if (!result.Succeeded)
+        if (result.Status != EUserRoleOperationStatus.Success)
         {
-            return BadRequest(ToApiResponse(result));
+            return BadRequest(ToApiResponse(result.Errors));
         }
 
         return Ok(new ApiResponse
@@ -143,32 +149,11 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         });
     }
 
-    private async Task<bool> CanManageRoleAsync(string role)
-    {
-        if (role == SystemRoles.Master)
-        {
-            return User.IsInRole(SystemRoles.Master);
-        }
-
-        if (role == SystemRoles.Admin)
-        {
-            return User.IsInRole(SystemRoles.Master);
-        }
-
-        return User.IsInRole(SystemRoles.Master) || User.IsInRole(SystemRoles.Admin);
-    }
-
-    private static string NormalizeRole(string role) => role.Trim();
-
-    private static ApiResponse ToApiResponse(IdentityResult result) => new ApiResponse
+    private static ApiResponse ToApiResponse(IReadOnlyCollection<ValidationFailure> errors) => new ApiResponse
     {
         StatusCode = StatusCodes.Status400BadRequest,
         Success = false,
         Message = "Operação não concluída.",
-        Errors = result.Errors.Select(error => new ValidationFailure
-        {
-            PropertyName = error.Code,
-            ErrorMessage = error.Description
-        }).ToList()
+        Errors = errors.ToList()
     };
 }
