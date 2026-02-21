@@ -3,7 +3,13 @@ using ConvocadoFc.WebApi.Models;
 
 namespace ConvocadoFc.WebApi.Modules.Subscriptions.Models;
 
+/// <summary>
+/// Filtros para listagem de usuários com assinatura.
+/// </summary>
 public sealed record ListSubscribedUsersQueryModel : PaginationQueryModel
 {
-    public SubscriptionStatus? Status { get; init; }
+    /// <summary>
+    /// Filtra pelo status da assinatura.
+    /// </summary>
+    public ESubscriptionStatus? Status { get; init; }
 }

@@ -3,15 +3,10 @@ using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Domain.Models.Modules.Notifications;
 using ConvocadoFc.Domain.Models.Modules.Users;
 using ConvocadoFc.Domain.Models.Modules.Subscriptions;
+using ConvocadoFc.Domain.Models.Modules.Teams;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ConvocadoFc.Infrastructure.Persistence;
 
@@ -21,6 +16,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<SubscriptionHistory> SubscriptionHistories => Set<SubscriptionHistory>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
+    public DbSet<TeamMemberProfile> TeamMemberProfiles => Set<TeamMemberProfile>();
+    public DbSet<TeamInvite> TeamInvites => Set<TeamInvite>();
+    public DbSet<TeamJoinRequest> TeamJoinRequests => Set<TeamJoinRequest>();
+    public DbSet<TeamSettings> TeamSettings => Set<TeamSettings>();
+    public DbSet<TeamSettingEntry> TeamSettingEntries => Set<TeamSettingEntry>();
+    public DbSet<TeamRule> TeamRules => Set<TeamRule>();
+    public DbSet<TeamRuleParameter> TeamRuleParameters => Set<TeamRuleParameter>();
 
     public IQueryable<TEntity> Query<TEntity>() where TEntity : class
         => Set<TEntity>().AsNoTracking();
@@ -159,6 +163,229 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .WithMany()
                 .HasForeignKey(history => history.ChangedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Team>().ToTable("Teams", TeamsSchema.Name);
+        builder.Entity<TeamMember>().ToTable("TeamMembers", TeamsSchema.Name);
+        builder.Entity<TeamMemberProfile>().ToTable("TeamMemberProfiles", TeamsSchema.Name);
+        builder.Entity<TeamInvite>().ToTable("TeamInvites", TeamsSchema.Name);
+        builder.Entity<TeamJoinRequest>().ToTable("TeamJoinRequests", TeamsSchema.Name);
+        builder.Entity<TeamSettings>().ToTable("TeamSettings", TeamsSchema.Name);
+        builder.Entity<TeamSettingEntry>().ToTable("TeamSettingEntries", TeamsSchema.Name);
+        builder.Entity<TeamRule>().ToTable("TeamRules", TeamsSchema.Name);
+        builder.Entity<TeamRuleParameter>().ToTable("TeamRuleParameters", TeamsSchema.Name);
+
+        builder.Entity<Team>(entity =>
+        {
+            entity.HasIndex(team => team.OwnerUserId);
+
+            entity.Property(team => team.Name)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(team => team.HomeFieldName)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(team => team.HomeFieldAddress)
+                .HasMaxLength(300);
+
+            entity.Property(team => team.CrestUrl)
+                .HasMaxLength(500);
+
+            entity.HasOne(team => team.OwnerUser)
+                .WithMany()
+                .HasForeignKey(team => team.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(team => team.Settings)
+                .WithOne(settings => settings.Team)
+                .HasForeignKey<TeamSettings>(settings => settings.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamMember>(entity =>
+        {
+            entity.HasIndex(member => new { member.TeamId, member.UserId }).IsUnique();
+            entity.HasIndex(member => member.TeamId);
+            entity.HasIndex(member => member.UserId);
+
+            entity.HasOne(member => member.Team)
+                .WithMany(team => team.Members)
+                .HasForeignKey(member => member.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(member => member.User)
+                .WithMany()
+                .HasForeignKey(member => member.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(member => member.AddedByUser)
+                .WithMany()
+                .HasForeignKey(member => member.AddedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamMemberProfile>(entity =>
+        {
+            entity.HasIndex(profile => profile.TeamMemberId).IsUnique();
+
+            entity.HasOne(profile => profile.TeamMember)
+                .WithOne(member => member.Profile)
+                .HasForeignKey<TeamMemberProfile>(profile => profile.TeamMemberId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamInvite>(entity =>
+        {
+            entity.HasIndex(invite => invite.TeamId);
+            entity.HasIndex(invite => invite.CreatedByUserId);
+            entity.HasIndex(invite => invite.Status);
+            entity.HasIndex(invite => invite.Token).IsUnique();
+
+            entity.Property(invite => invite.TargetEmail)
+                .HasMaxLength(320);
+
+            entity.Property(invite => invite.Token)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(invite => invite.Message)
+                .HasMaxLength(500);
+
+            entity.HasOne(invite => invite.Team)
+                .WithMany(team => team.Invites)
+                .HasForeignKey(invite => invite.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(invite => invite.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(invite => invite.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(invite => invite.TargetUser)
+                .WithMany()
+                .HasForeignKey(invite => invite.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamJoinRequest>(entity =>
+        {
+            entity.HasIndex(request => request.TeamId);
+            entity.HasIndex(request => request.UserId);
+            entity.HasIndex(request => request.Status);
+
+            entity.Property(request => request.Message)
+                .HasMaxLength(500);
+
+            entity.HasOne(request => request.Team)
+                .WithMany(team => team.JoinRequests)
+                .HasForeignKey(request => request.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(request => request.User)
+                .WithMany()
+                .HasForeignKey(request => request.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(request => request.ReviewedByUser)
+                .WithMany()
+                .HasForeignKey(request => request.ReviewedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(request => request.Invite)
+                .WithMany()
+                .HasForeignKey(request => request.InviteId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<TeamSettings>(entity =>
+        {
+            entity.HasIndex(settings => settings.TeamId).IsUnique();
+
+            entity.HasOne(settings => settings.Team)
+                .WithOne(team => team.Settings)
+                .HasForeignKey<TeamSettings>(settings => settings.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamSettingEntry>(entity =>
+        {
+            entity.HasIndex(entry => new { entry.TeamSettingsId, entry.Key }).IsUnique();
+
+            entity.Property(entry => entry.Key)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(entry => entry.Value)
+                .HasMaxLength(1200)
+                .IsRequired();
+
+            entity.Property(entry => entry.ValueType)
+                .HasMaxLength(40);
+
+            entity.Property(entry => entry.Description)
+                .HasMaxLength(300);
+
+            entity.HasOne(entry => entry.TeamSettings)
+                .WithMany(settings => settings.Settings)
+                .HasForeignKey(entry => entry.TeamSettingsId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamRule>(entity =>
+        {
+            entity.HasIndex(rule => rule.TeamSettingsId);
+            entity.HasIndex(rule => rule.Code);
+
+            entity.Property(rule => rule.Code)
+                .HasMaxLength(80)
+                .IsRequired();
+
+            entity.Property(rule => rule.Name)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(rule => rule.Description)
+                .HasMaxLength(500);
+
+            entity.Property(rule => rule.Scope)
+                .HasMaxLength(80);
+
+            entity.Property(rule => rule.Target)
+                .HasMaxLength(120);
+
+            entity.HasOne(rule => rule.TeamSettings)
+                .WithMany(settings => settings.Rules)
+                .HasForeignKey(rule => rule.TeamSettingsId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamRuleParameter>(entity =>
+        {
+            entity.HasIndex(parameter => new { parameter.TeamRuleId, parameter.Key }).IsUnique();
+
+            entity.Property(parameter => parameter.Key)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(parameter => parameter.Value)
+                .HasMaxLength(1200)
+                .IsRequired();
+
+            entity.Property(parameter => parameter.ValueType)
+                .HasMaxLength(40);
+
+            entity.Property(parameter => parameter.Unit)
+                .HasMaxLength(40);
+
+            entity.Property(parameter => parameter.Description)
+                .HasMaxLength(300);
+
+            entity.HasOne(parameter => parameter.TeamRule)
+                .WithMany(rule => rule.Parameters)
+                .HasForeignKey(parameter => parameter.TeamRuleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

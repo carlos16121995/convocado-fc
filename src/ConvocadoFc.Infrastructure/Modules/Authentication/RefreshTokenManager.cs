@@ -1,14 +1,13 @@
-using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
+
 using Microsoft.Extensions.Options;
+
 using StackExchange.Redis;
 
 namespace ConvocadoFc.Infrastructure.Modules.Authentication;

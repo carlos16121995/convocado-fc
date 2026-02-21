@@ -1,20 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Domain.Shared;
 using ConvocadoFc.WebApi.Modules.Subscriptions.Models;
+
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ConvocadoFc.WebApi.Modules.Subscriptions.Controllers;
 
+/// <summary>
+/// Endpoints de gerenciamento de planos de assinatura.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = SystemRoles.Master, Policy = AuthPolicies.EmailConfirmed)]
@@ -22,6 +19,10 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
 {
     private readonly IPlanManagementHandler _planHandler = planHandler;
 
+    /// <summary>
+    /// Lista planos disponíveis para contratação.
+    /// Inclui capacidade e status de ativação.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> ListPlans(CancellationToken cancellationToken)
     {
@@ -36,6 +37,10 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
         });
     }
 
+    /// <summary>
+    /// Obtém um plano por id.
+    /// Retorna detalhes completos do plano.
+    /// </summary>
     [HttpGet("{planId:guid}")]
     public async Task<IActionResult> GetPlan(Guid planId, CancellationToken cancellationToken)
     {
@@ -59,6 +64,10 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
         });
     }
 
+    /// <summary>
+    /// Cria um novo plano.
+    /// Valida código, nome e capacidade.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreatePlan([FromBody] CreatePlanRequest request, CancellationToken cancellationToken)
     {
@@ -75,9 +84,9 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
 
         return result.Status switch
         {
-            PlanOperationStatus.CodeAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Código de plano já existente.")),
-            PlanOperationStatus.NameAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Nome de plano já existente.")),
-            PlanOperationStatus.InvalidCapacity => BadRequest(ToError(StatusCodes.Status400BadRequest, "Capacidade do plano inválida.")),
+            EPlanOperationStatus.CodeAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Código de plano já existente.")),
+            EPlanOperationStatus.NameAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Nome de plano já existente.")),
+            EPlanOperationStatus.InvalidCapacity => BadRequest(ToError(StatusCodes.Status400BadRequest, "Capacidade do plano inválida.")),
             _ => Ok(new ApiResponse<PlanResponse>
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -88,6 +97,10 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
         };
     }
 
+    /// <summary>
+    /// Atualiza um plano existente.
+    /// Permite alterar preço, capacidade e status.
+    /// </summary>
     [HttpPut("{planId:guid}")]
     public async Task<IActionResult> UpdatePlan(Guid planId, [FromBody] UpdatePlanRequest request, CancellationToken cancellationToken)
     {
@@ -105,10 +118,10 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
 
         return result.Status switch
         {
-            PlanOperationStatus.NotFound => NotFound(ToError(StatusCodes.Status404NotFound, "Plano não encontrado.")),
-            PlanOperationStatus.CodeAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Código de plano já existente.")),
-            PlanOperationStatus.NameAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Nome de plano já existente.")),
-            PlanOperationStatus.InvalidCapacity => BadRequest(ToError(StatusCodes.Status400BadRequest, "Capacidade do plano inválida.")),
+            EPlanOperationStatus.NotFound => NotFound(ToError(StatusCodes.Status404NotFound, "Plano não encontrado.")),
+            EPlanOperationStatus.CodeAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Código de plano já existente.")),
+            EPlanOperationStatus.NameAlreadyExists => Conflict(ToError(StatusCodes.Status409Conflict, "Nome de plano já existente.")),
+            EPlanOperationStatus.InvalidCapacity => BadRequest(ToError(StatusCodes.Status400BadRequest, "Capacidade do plano inválida.")),
             _ => Ok(new ApiResponse<PlanResponse>
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -119,11 +132,15 @@ public sealed class PlansController(IPlanManagementHandler planHandler) : Contro
         };
     }
 
+    /// <summary>
+    /// Desativa um plano.
+    /// Impede novas assinaturas com ele.
+    /// </summary>
     [HttpDelete("{planId:guid}")]
     public async Task<IActionResult> DeactivatePlan(Guid planId, CancellationToken cancellationToken)
     {
         var result = await _planHandler.DeactivatePlanAsync(planId, cancellationToken);
-        if (result.Status == PlanOperationStatus.NotFound)
+        if (result.Status == EPlanOperationStatus.NotFound)
         {
             return NotFound(ToError(StatusCodes.Status404NotFound, "Plano não encontrado."));
         }

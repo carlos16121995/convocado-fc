@@ -7,7 +7,7 @@ public sealed class NotificationLog
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTimeOffset SentAt { get; set; }
     public string Reason { get; set; } = string.Empty;
-    public NotificationChannel Channel { get; set; }
+    public ENotificationChannel Channel { get; set; }
     public bool IsSuccess { get; set; }
     public string? ErrorMessage { get; set; }
 

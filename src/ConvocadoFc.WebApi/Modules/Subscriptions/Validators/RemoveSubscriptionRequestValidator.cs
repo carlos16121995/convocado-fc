@@ -7,6 +7,5 @@ public sealed class RemoveSubscriptionRequestValidator : AbstractValidator<Remov
 {
     public RemoveSubscriptionRequestValidator()
     {
-        RuleFor(x => x.SubscriptionId).NotEmpty();
     }
 }

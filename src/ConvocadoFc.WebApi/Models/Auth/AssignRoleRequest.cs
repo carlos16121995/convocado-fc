@@ -2,4 +2,8 @@ using System;
 
 namespace ConvocadoFc.WebApi.Models.Auth;
 
-public sealed record AssignRoleRequest(Guid UserId, string Role);
+/// <summary>
+/// Solicitação para atribuir uma role ao usuário (legado).
+/// </summary>
+/// <param name="Role">Nome da role a ser atribuída.</param>
+public sealed record AssignRoleRequest(string Role);

@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-
 using ConvocadoFc.Domain.Models.Modules.Notifications;
 
 namespace ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
 
 public sealed record NotificationRequest(
-    NotificationChannel Channel,
+    ENotificationChannel Channel,
     string Reason,
     string Title,
     string Message,

@@ -1,26 +1,29 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Users.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Users.Models;
 using ConvocadoFc.Domain.Shared;
 using ConvocadoFc.WebApi.Modules.Authentication.Models;
 using ConvocadoFc.WebApi.Modules.Users.Models;
+
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ConvocadoFc.WebApi.Modules.Users.Controllers;
 
+/// <summary>
+/// Endpoints de cadastro e criação de usuários.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public sealed class UsersController(
     IRegisterUserHandler registerUserHandler) : ControllerBase
 {
     private readonly IRegisterUserHandler _registerUserHandler = registerUserHandler;
 
-    [HttpPost("register")]
+    /// <summary>
+    /// Registra um novo usuário.
+    /// Cria o perfil básico e atribui a role padrão.
+    /// </summary>
+    [HttpPost]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -33,7 +36,7 @@ public sealed class UsersController(
             request.ProfilePhotoUrl),
             cancellationToken);
 
-        if (result.Status == RegisterUserStatus.EmailAlreadyExists)
+        if (result.Status == ERegisterUserStatus.EmailAlreadyExists)
         {
             return Conflict(new ApiResponse
             {
@@ -43,7 +46,7 @@ public sealed class UsersController(
             });
         }
 
-        if (result.Status == RegisterUserStatus.Failed)
+        if (result.Status == ERegisterUserStatus.Failed)
         {
             return BadRequest(new ApiResponse
             {

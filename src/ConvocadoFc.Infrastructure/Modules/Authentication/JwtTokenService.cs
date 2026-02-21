@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,6 +5,7 @@ using System.Text;
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
+
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

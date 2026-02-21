@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Abstractions;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
@@ -13,7 +7,7 @@ namespace ConvocadoFc.Infrastructure.Modules.Notifications;
 
 public sealed class NotificationService(IEnumerable<INotificationProvider> providers, IApplicationDbContext dbContext) : INotificationService
 {
-    private readonly IReadOnlyDictionary<NotificationChannel, INotificationProvider> _providers = providers.ToDictionary(static provider => provider.Channel);
+    private readonly IReadOnlyDictionary<ENotificationChannel, INotificationProvider> _providers = providers.ToDictionary(static provider => provider.Channel);
 
     public async Task SendAsync(NotificationRequest request, CancellationToken cancellationToken = default)
     {

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
@@ -31,7 +26,7 @@ public sealed class RegisterUserHandler(
         var existingUser = await _userManager.FindByEmailAsync(command.Email);
         if (existingUser is not null)
         {
-            return new RegisterUserResult(RegisterUserStatus.EmailAlreadyExists, Array.Empty<ValidationFailure>(), null, Array.Empty<string>());
+            return new RegisterUserResult(ERegisterUserStatus.EmailAlreadyExists, Array.Empty<ValidationFailure>(), null, Array.Empty<string>());
         }
 
         var user = new ApplicationUser
@@ -48,7 +43,7 @@ public sealed class RegisterUserHandler(
         var result = await _userManager.CreateAsync(user, command.Password);
         if (!result.Succeeded)
         {
-            return new RegisterUserResult(RegisterUserStatus.Failed, ToValidationFailures(result), null, Array.Empty<string>());
+            return new RegisterUserResult(ERegisterUserStatus.Failed, ToValidationFailures(result), null, Array.Empty<string>());
         }
 
         await _userManager.AddToRoleAsync(user, SystemRoles.User);
@@ -57,7 +52,7 @@ public sealed class RegisterUserHandler(
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return new RegisterUserResult(RegisterUserStatus.Success, Array.Empty<ValidationFailure>(), user, roles.ToArray());
+        return new RegisterUserResult(ERegisterUserStatus.Success, Array.Empty<ValidationFailure>(), user, roles.ToArray());
     }
 
     private async Task SendEmailConfirmationAsync(ApplicationUser user, CancellationToken cancellationToken)
@@ -67,7 +62,7 @@ public sealed class RegisterUserHandler(
         var confirmUrl = BuildApiUrl(_appUrlProvider.ApiBaseUrl, "confirm-email", user.Id, encodedToken);
 
         await _notificationService.SendAsync(new NotificationRequest(
-            NotificationChannel.Email,
+            ENotificationChannel.Email,
             NotificationReasons.EmailConfirmation,
             "Confirme seu e-mail",
             "Clique no botão abaixo para confirmar seu e-mail e liberar ações críticas.",

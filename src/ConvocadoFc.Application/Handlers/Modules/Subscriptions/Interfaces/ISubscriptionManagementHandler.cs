@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 using ConvocadoFc.Domain.Shared;
 

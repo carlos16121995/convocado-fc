@@ -1,6 +1,5 @@
-using System;
-
 using ConvocadoFc.WebApi.Modules.Subscriptions.Models;
+
 using FluentValidation;
 
 namespace ConvocadoFc.WebApi.Modules.Subscriptions.Validators;
@@ -9,8 +8,6 @@ public sealed class ChangeSubscriptionRequestValidator : AbstractValidator<Chang
 {
     public ChangeSubscriptionRequestValidator()
     {
-        RuleFor(x => x.SubscriptionId).NotEmpty();
-
         RuleFor(x => x).Custom((request, context) =>
         {
             if (!request.PlanId.HasValue && !request.EndsAt.HasValue && !request.AutoRenew.HasValue && !request.Status.HasValue)

@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
+
 using Microsoft.AspNetCore.Identity;
 
 namespace ConvocadoFc.Infrastructure.Modules.Authentication;

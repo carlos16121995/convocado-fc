@@ -1,5 +1,8 @@
-using System;
-
 namespace ConvocadoFc.WebApi.Modules.Authentication.Models;
 
-public sealed record ResetPasswordRequest(Guid UserId, string Token, string NewPassword);
+/// <summary>
+/// Solicitação para redefinir a senha.
+/// </summary>
+/// <param name="UserId">Identificador do usuário.</param>
+/// <param name="NewPassword">Nova senha do usuário.</param>
+public sealed record ResetPasswordRequest(Guid UserId, string NewPassword);

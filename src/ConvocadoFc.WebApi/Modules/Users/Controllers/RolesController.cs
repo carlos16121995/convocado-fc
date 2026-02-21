@@ -1,26 +1,29 @@
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Domain.Shared;
 using ConvocadoFc.WebApi.Modules.Users.Models;
+
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace ConvocadoFc.WebApi.Modules.Users.Controllers;
 
+/// <summary>
+/// Endpoints de gerenciamento de roles do sistema.
+/// Controla permissões globais de acesso.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api")]
 public sealed class RolesController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
 
-    [HttpGet]
+    /// <summary>
+    /// Lista as roles disponíveis no sistema.
+    /// Útil para interfaces administrativas.
+    /// </summary>
+    [HttpGet("roles")]
     [Authorize(Roles = SystemRoles.ModeratorAdminMaster, Policy = AuthPolicies.EmailConfirmed)]
     public IActionResult ListRoles() => Ok(new ApiResponse<IReadOnlyCollection<string>>
     {
@@ -30,9 +33,13 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         Data = SystemRoles.All.ToList()
     });
 
-    [HttpPost("assign")]
+    /// <summary>
+    /// Atribui uma role a um usuário.
+    /// Requer permissões administrativas.
+    /// </summary>
+    [HttpPost("users/{userId:guid}/roles")]
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
-    public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AssignRole([FromRoute] Guid userId, [FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var normalizedRole = NormalizeRole(request.Role);
@@ -51,7 +58,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
             return NotFound(new ApiResponse
@@ -86,12 +93,16 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         });
     }
 
-    [HttpPost("remove")]
+    /// <summary>
+    /// Remove uma role de um usuário.
+    /// Requer permissões administrativas.
+    /// </summary>
+    [HttpDelete("users/{userId:guid}/roles/{role}")]
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
-    public async Task<IActionResult> RemoveRole([FromBody] RemoveRoleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RemoveRole([FromRoute] Guid userId, [FromRoute] string role, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var normalizedRole = NormalizeRole(request.Role);
+        var normalizedRole = NormalizeRole(role);
         if (!SystemRoles.All.Contains(normalizedRole))
         {
             return BadRequest(new ApiResponse
@@ -107,7 +118,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
             return NotFound(new ApiResponse

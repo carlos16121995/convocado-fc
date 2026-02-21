@@ -1,9 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
+
 using FluentEmail.Core;
 
 namespace ConvocadoFc.Infrastructure.Modules.Notifications.Email;

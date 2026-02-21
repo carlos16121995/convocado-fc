@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Abstractions;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 using ConvocadoFc.Domain.Models.Modules.Subscriptions;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ConvocadoFc.Application.Handlers.Modules.Subscriptions.Implementations;
@@ -48,7 +43,7 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
     {
         if (!IsCapacityValid(command.IsCustomPricing, command.MaxTeams, command.MaxMembersPerTeam))
         {
-            return new PlanOperationResult(PlanOperationStatus.InvalidCapacity, null);
+            return new PlanOperationResult(EPlanOperationStatus.InvalidCapacity, null);
         }
 
         var normalizedCode = NormalizeCode(command.Code);
@@ -58,14 +53,14 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
             .AnyAsync(plan => plan.Code == normalizedCode, cancellationToken);
         if (codeExists)
         {
-            return new PlanOperationResult(PlanOperationStatus.CodeAlreadyExists, null);
+            return new PlanOperationResult(EPlanOperationStatus.CodeAlreadyExists, null);
         }
 
         var nameExists = await _dbContext.Query<Plan>()
             .AnyAsync(plan => plan.Name == normalizedName, cancellationToken);
         if (nameExists)
         {
-            return new PlanOperationResult(PlanOperationStatus.NameAlreadyExists, null);
+            return new PlanOperationResult(EPlanOperationStatus.NameAlreadyExists, null);
         }
 
         var plan = new Plan
@@ -85,14 +80,14 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
         await _dbContext.AddAsync(plan, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new PlanOperationResult(PlanOperationStatus.Success, MapToDto(plan));
+        return new PlanOperationResult(EPlanOperationStatus.Success, MapToDto(plan));
     }
 
     public async Task<PlanOperationResult> UpdatePlanAsync(UpdatePlanCommand command, CancellationToken cancellationToken)
     {
         if (!IsCapacityValid(command.IsCustomPricing, command.MaxTeams, command.MaxMembersPerTeam))
         {
-            return new PlanOperationResult(PlanOperationStatus.InvalidCapacity, null);
+            return new PlanOperationResult(EPlanOperationStatus.InvalidCapacity, null);
         }
 
         var plan = await _dbContext.Track<Plan>()
@@ -100,7 +95,7 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
 
         if (plan is null)
         {
-            return new PlanOperationResult(PlanOperationStatus.NotFound, null);
+            return new PlanOperationResult(EPlanOperationStatus.NotFound, null);
         }
 
         var normalizedCode = NormalizeCode(command.Code);
@@ -110,14 +105,14 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
             .AnyAsync(existing => existing.Code == normalizedCode && existing.Id != plan.Id, cancellationToken);
         if (codeExists)
         {
-            return new PlanOperationResult(PlanOperationStatus.CodeAlreadyExists, null);
+            return new PlanOperationResult(EPlanOperationStatus.CodeAlreadyExists, null);
         }
 
         var nameExists = await _dbContext.Query<Plan>()
             .AnyAsync(existing => existing.Name == normalizedName && existing.Id != plan.Id, cancellationToken);
         if (nameExists)
         {
-            return new PlanOperationResult(PlanOperationStatus.NameAlreadyExists, null);
+            return new PlanOperationResult(EPlanOperationStatus.NameAlreadyExists, null);
         }
 
         plan.Name = normalizedName;
@@ -132,7 +127,7 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new PlanOperationResult(PlanOperationStatus.Success, MapToDto(plan));
+        return new PlanOperationResult(EPlanOperationStatus.Success, MapToDto(plan));
     }
 
     public async Task<PlanOperationResult> DeactivatePlanAsync(Guid planId, CancellationToken cancellationToken)
@@ -142,7 +137,7 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
 
         if (plan is null)
         {
-            return new PlanOperationResult(PlanOperationStatus.NotFound, null);
+            return new PlanOperationResult(EPlanOperationStatus.NotFound, null);
         }
 
         plan.IsActive = false;
@@ -150,7 +145,7 @@ public sealed class PlanManagementHandler(IApplicationDbContext dbContext) : IPl
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new PlanOperationResult(PlanOperationStatus.Success, MapToDto(plan));
+        return new PlanOperationResult(EPlanOperationStatus.Success, MapToDto(plan));
     }
 
     private static bool IsCapacityValid(bool isCustomPricing, int? maxTeams, int? maxMembersPerTeam)

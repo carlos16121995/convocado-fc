@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 

@@ -5,5 +5,5 @@ namespace ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 
 public sealed record ListSubscribedUsersQuery(
     PaginationQuery Pagination,
-    SubscriptionStatus? Status
+    ESubscriptionStatus? Status
 );

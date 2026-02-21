@@ -8,6 +8,6 @@ namespace ConvocadoFc.Application.Abstractions.Notifications.Interfaces;
 
 public interface INotificationProvider
 {
-    NotificationChannel Channel { get; }
+    ENotificationChannel Channel { get; }
     Task SendAsync(NotificationRequest request, CancellationToken cancellationToken = default);
 }

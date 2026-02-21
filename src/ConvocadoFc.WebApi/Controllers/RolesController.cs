@@ -13,14 +13,22 @@ using System.Threading.Tasks;
 
 namespace ConvocadoFc.WebApi.Controllers;
 
+/// <summary>
+/// Endpoints legados de gerenciamento de roles.
+/// Mantidos para compatibilidade com clientes antigos.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/legacy")]
 public sealed class RolesController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
 
-    [HttpGet]
+    /// <summary>
+    /// Lista as roles disponíveis (legado).
+    /// Usado por telas administrativas antigas.
+    /// </summary>
+    [HttpGet("roles")]
     [Authorize(Roles = SystemRoles.ModeratorAdminMaster, Policy = AuthPolicies.EmailConfirmed)]
     public IActionResult ListRoles() => Ok(new ApiResponse<IReadOnlyCollection<string>>
     {
@@ -30,9 +38,13 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         Data = SystemRoles.All.ToList()
     });
 
-    [HttpPost("assign")]
+    /// <summary>
+    /// Atribui uma role a um usuário (legado).
+    /// Requer permissões administrativas.
+    /// </summary>
+    [HttpPost("users/{userId:guid}/roles")]
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
-    public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AssignRole([FromRoute] Guid userId, [FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var normalizedRole = NormalizeRole(request.Role);
@@ -51,7 +63,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
             return NotFound(new ApiResponse
@@ -86,12 +98,16 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
         });
     }
 
-    [HttpPost("remove")]
+    /// <summary>
+    /// Remove uma role de um usuário (legado).
+    /// Requer permissões administrativas.
+    /// </summary>
+    [HttpDelete("users/{userId:guid}/roles/{role}")]
     [Authorize(Roles = SystemRoles.AdminOrMaster, Policy = AuthPolicies.EmailConfirmed)]
-    public async Task<IActionResult> RemoveRole([FromBody] RemoveRoleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RemoveRole([FromRoute] Guid userId, [FromRoute] string role, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var normalizedRole = NormalizeRole(request.Role);
+        var normalizedRole = NormalizeRole(role);
         if (!SystemRoles.All.Contains(normalizedRole))
         {
             return BadRequest(new ApiResponse
@@ -107,7 +123,7 @@ public sealed class RolesController(UserManager<ApplicationUser> userManager, Ro
             return Forbid();
         }
 
-        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
             return NotFound(new ApiResponse

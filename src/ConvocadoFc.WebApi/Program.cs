@@ -1,25 +1,24 @@
-using System;
-using System.Globalization;
-using System.Text;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application;
-using ConvocadoFc.Application.Handlers.Modules.Authentication.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Application.Handlers.Modules.Shared.Interfaces;
+using ConvocadoFc.Domain.Models.Modules.Teams;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Infrastructure;
 using ConvocadoFc.Infrastructure.Modules.Authentication;
+using ConvocadoFc.WebApi.Authorization;
 using ConvocadoFc.WebApi.Options;
+
 using FluentValidation;
 using FluentValidation.AspNetCore;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+
+using System.Globalization;
+using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,13 +70,22 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(AuthPolicies.EmailConfirmed, policy =>
-        policy.RequireClaim(AuthConstants.EmailConfirmedClaim, "true"));
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(AuthPolicies.EmailConfirmed, policy =>
+        policy.RequireClaim(AuthConstants.EmailConfirmedClaim, "true"))
+    .AddPolicy(TeamPolicies.TeamAdmin, policy =>
+        policy.Requirements.Add(new TeamRoleRequirement(new[] { ETeamMemberRole.Admin })))
+    .AddPolicy(TeamPolicies.TeamModerator, policy =>
+        policy.Requirements.Add(new TeamRoleRequirement(new[] { ETeamMemberRole.Admin, ETeamMemberRole.Moderator })));
+
+builder.Services.AddScoped<IAuthorizationHandler, TeamRoleAuthorizationHandler>();
 
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
 
 var app = builder.Build();
 
@@ -93,10 +101,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "ConvocadoFc API v1");
+    options.RoutePrefix = "docs";
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

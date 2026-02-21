@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ConvocadoFc.Domain.Models.Modules.Users.Identity;
 
 public static class SystemRoles

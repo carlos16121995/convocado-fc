@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 
 namespace ConvocadoFc.Application.Handlers.Modules.Authentication.Interfaces;

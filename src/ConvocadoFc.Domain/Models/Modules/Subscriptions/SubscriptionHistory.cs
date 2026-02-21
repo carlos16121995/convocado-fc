@@ -1,5 +1,3 @@
-using System;
-
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 
 namespace ConvocadoFc.Domain.Models.Modules.Subscriptions;
@@ -11,9 +9,9 @@ public sealed class SubscriptionHistory
     public Guid OwnerUserId { get; set; }
     public Guid? OldPlanId { get; set; }
     public Guid? NewPlanId { get; set; }
-    public SubscriptionStatus? OldStatus { get; set; }
-    public SubscriptionStatus NewStatus { get; set; }
-    public SubscriptionHistoryAction Action { get; set; }
+    public ESubscriptionStatus? OldStatus { get; set; }
+    public ESubscriptionStatus NewStatus { get; set; }
+    public ESubscriptionHistoryAction Action { get; set; }
     public Guid ChangedByUserId { get; set; }
     public DateTimeOffset OccurredAt { get; set; } = DateTimeOffset.UtcNow;
     public string? Note { get; set; }

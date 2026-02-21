@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 
 namespace ConvocadoFc.Application.Handlers.Modules.Subscriptions.Interfaces;

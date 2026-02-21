@@ -1,12 +1,8 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Abstractions;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 using ConvocadoFc.Domain.Models.Modules.Subscriptions;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ConvocadoFc.Application.Handlers.Modules.Subscriptions.Implementations;
@@ -19,7 +15,7 @@ public sealed class SubscriptionAccessService(IApplicationDbContext dbContext) :
     {
         var subscriptionQuery = _dbContext.Query<Subscription>()
             .Where(subscription => subscription.OwnerUserId == ownerUserId
-                                   && subscription.Status == SubscriptionStatus.Active)
+                                   && subscription.Status == ESubscriptionStatus.Active)
             .OrderByDescending(subscription => subscription.StartsAt);
 
         var data = await (from subscription in subscriptionQuery

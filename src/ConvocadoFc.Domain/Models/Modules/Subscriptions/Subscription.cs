@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 
 namespace ConvocadoFc.Domain.Models.Modules.Subscriptions;
@@ -10,7 +7,7 @@ public sealed class Subscription
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid OwnerUserId { get; set; }
     public Guid PlanId { get; set; }
-    public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
+    public ESubscriptionStatus Status { get; set; } = ESubscriptionStatus.Active;
     public DateTimeOffset StartsAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? EndsAt { get; set; }
     public bool AutoRenew { get; set; }

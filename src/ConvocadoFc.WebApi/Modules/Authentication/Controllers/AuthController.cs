@@ -1,11 +1,6 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 using ConvocadoFc.Application.Handlers.Modules.Authentication.Interfaces;
-using ConvocadoFc.Application.Handlers.Modules.Authentication.Models;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
@@ -16,7 +11,6 @@ using ConvocadoFc.WebApi.Modules.Authentication.Models;
 using ConvocadoFc.WebApi.Options;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -24,8 +18,11 @@ using Microsoft.Extensions.Options;
 
 namespace ConvocadoFc.WebApi.Modules.Authentication.Controllers;
 
+/// <summary>
+/// Endpoints de autenticação, sessão e recuperação de acesso.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api")]
 public sealed class AuthController(
     UserManager<ApplicationUser> userManager,
     IJwtTokenService jwtTokenService,
@@ -47,7 +44,11 @@ public sealed class AuthController(
     private readonly AppUrlOptions _appUrlOptions = appUrlOptions.Value;
     private readonly GoogleAuthOptions _googleAuthOptions = googleAuthOptions.Value;
 
-    [HttpPost("login")]
+    /// <summary>
+    /// Autentica com e-mail e senha e cria uma sessão.
+    /// Emite access e refresh tokens em cookies HTTP-only.
+    /// </summary>
+    [HttpPost("sessions")]
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
@@ -84,7 +85,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("google")]
+    /// <summary>
+    /// Autentica via Google e cria uma sessão.
+    /// Se o usuário não existir, realiza o cadastro básico.
+    /// </summary>
+    [HttpPost("sessions/google")]
     [AllowAnonymous]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, CancellationToken cancellationToken)
     {
@@ -162,7 +167,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("refresh")]
+    /// <summary>
+    /// Atualiza o token de acesso usando o refresh token do cookie.
+    /// Também rotaciona o refresh token por segurança.
+    /// </summary>
+    [HttpPost("tokens/refresh")]
     [AllowAnonymous]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
@@ -221,7 +230,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("logout")]
+    /// <summary>
+    /// Encerra a sessão atual e revoga o refresh token.
+    /// Remove os cookies de autenticação.
+    /// </summary>
+    [HttpDelete("sessions/current")]
     [Authorize]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
@@ -241,7 +254,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("change-password")]
+    /// <summary>
+    /// Altera a senha do usuário autenticado.
+    /// Requer a senha atual para validação.
+    /// </summary>
+    [HttpPatch("users/me/password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
     {
@@ -271,7 +288,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("forgot-password")]
+    /// <summary>
+    /// Solicita recuperação de senha por e-mail.
+    /// Envia um link com token de redefinição quando o e-mail existe.
+    /// </summary>
+    [HttpPost("password-resets")]
     [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
@@ -283,7 +304,7 @@ public sealed class AuthController(
             var resetUrl = BuildWebUrl(_appUrlOptions.WebBaseUrl, "reset-password", user.Id, encodedToken);
 
             await _notificationService.SendAsync(new NotificationRequest(
-                NotificationChannel.Email,
+                ENotificationChannel.Email,
                 NotificationReasons.PasswordReset,
                 "Recuperação de senha",
                 "Recebemos uma solicitação para redefinir sua senha. Caso não tenha sido você, ignore este e-mail.",
@@ -300,9 +321,13 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("reset-password")]
+    /// <summary>
+    /// Redefine a senha usando o token de recuperação.
+    /// Valida o usuário e o token informado.
+    /// </summary>
+    [HttpPut("password-resets/{token}")]
     [AllowAnonymous]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await _userManager.FindByIdAsync(request.UserId.ToString());
@@ -316,8 +341,8 @@ public sealed class AuthController(
             });
         }
 
-        var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token));
-        var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+        var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
         if (!result.Succeeded)
         {
             return BadRequest(ToApiResponse(result));
@@ -331,9 +356,13 @@ public sealed class AuthController(
         });
     }
 
-    [HttpGet("confirm-email")]
+    /// <summary>
+    /// Confirma o e-mail do usuário com token.
+    /// Libera ações que exigem e-mail confirmado.
+    /// </summary>
+    [HttpPut("users/{userId:guid}/email-confirmation")]
     [AllowAnonymous]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> ConfirmEmail([FromRoute] Guid userId, [FromQuery] string token, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await _userManager.FindByIdAsync(userId.ToString());

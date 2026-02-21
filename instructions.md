@@ -104,3 +104,4 @@ public class ValidationFailure
 - Clean Code: nomes claros e funções pequenas
 - DRY: reutilização e abstrações genéricas
 - Desempenho: usar Linq2Db para leituras complexas e críticas
+- Enums: todos os enums devem começar com o prefixo "E" (ex.: ETeamMemberRole)

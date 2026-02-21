@@ -11,14 +11,11 @@ using ConvocadoFc.Infrastructure.Modules.Notifications;
 using ConvocadoFc.Infrastructure.Modules.Notifications.Email;
 using ConvocadoFc.Infrastructure.Persistence;
 
-using FluentEmail.Smtp;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using StackExchange.Redis;
-using System;
 
 namespace ConvocadoFc.Infrastructure;
 

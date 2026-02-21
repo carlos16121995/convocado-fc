@@ -7,9 +7,6 @@ public sealed class AssignRoleRequestValidator : AbstractValidator<AssignRoleReq
 {
     public AssignRoleRequestValidator()
     {
-        RuleFor(request => request.UserId)
-            .NotEmpty();
-
         RuleFor(request => request.Role)
             .NotEmpty();
     }

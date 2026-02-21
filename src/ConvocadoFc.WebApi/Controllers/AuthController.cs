@@ -23,8 +23,12 @@ using Microsoft.Extensions.Options;
 
 namespace ConvocadoFc.WebApi.Controllers;
 
+/// <summary>
+/// Endpoints legados de autenticação e sessão.
+/// Mantidos para compatibilidade com clientes antigos.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/legacy")]
 public sealed class AuthController(
     UserManager<ApplicationUser> userManager,
     IJwtTokenService jwtTokenService,
@@ -46,7 +50,11 @@ public sealed class AuthController(
     private readonly AppUrlOptions _appUrlOptions = appUrlOptions.Value;
     private readonly GoogleAuthOptions _googleAuthOptions = googleAuthOptions.Value;
 
-    [HttpPost("register")]
+    /// <summary>
+    /// Registra um novo usuário (legado).
+    /// Cria perfil e atribui role padrão.
+    /// </summary>
+    [HttpPost("users")]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -91,7 +99,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("login")]
+    /// <summary>
+    /// Autentica com e-mail e senha (legado).
+    /// Emite cookies de sessão.
+    /// </summary>
+    [HttpPost("sessions")]
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
@@ -128,7 +140,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("google")]
+    /// <summary>
+    /// Autentica via Google (legado).
+    /// Cria conta quando necessário.
+    /// </summary>
+    [HttpPost("sessions/google")]
     [AllowAnonymous]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, CancellationToken cancellationToken)
     {
@@ -206,7 +222,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("refresh")]
+    /// <summary>
+    /// Atualiza o token de acesso (legado).
+    /// Rotaciona o refresh token.
+    /// </summary>
+    [HttpPost("tokens/refresh")]
     [AllowAnonymous]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
@@ -265,7 +285,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("logout")]
+    /// <summary>
+    /// Encerra a sessão atual (legado).
+    /// Remove cookies e revoga refresh token.
+    /// </summary>
+    [HttpDelete("sessions/current")]
     [Authorize]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
@@ -285,7 +309,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("change-password")]
+    /// <summary>
+    /// Altera a senha do usuário autenticado (legado).
+    /// Requer confirmação da senha atual.
+    /// </summary>
+    [HttpPatch("users/me/password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
     {
@@ -315,7 +343,11 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("forgot-password")]
+    /// <summary>
+    /// Solicita recuperação de senha (legado).
+    /// Envia link de redefinição por e-mail.
+    /// </summary>
+    [HttpPost("password-resets")]
     [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
@@ -327,7 +359,7 @@ public sealed class AuthController(
             var resetUrl = BuildWebUrl(_appUrlOptions.WebBaseUrl, "reset-password", user.Id, encodedToken);
 
             await _notificationService.SendAsync(new NotificationRequest(
-                NotificationChannel.Email,
+                ENotificationChannel.Email,
                 NotificationReasons.PasswordReset,
                 "Recuperação de senha",
                 "Recebemos uma solicitação para redefinir sua senha. Caso não tenha sido você, ignore este e-mail.",
@@ -344,9 +376,13 @@ public sealed class AuthController(
         });
     }
 
-    [HttpPost("reset-password")]
+    /// <summary>
+    /// Redefine a senha usando token (legado).
+    /// Valida o usuário e o token informado.
+    /// </summary>
+    [HttpPut("password-resets/{token}")]
     [AllowAnonymous]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await _userManager.FindByIdAsync(request.UserId.ToString());
@@ -360,8 +396,8 @@ public sealed class AuthController(
             });
         }
 
-        var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token));
-        var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+        var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
         if (!result.Succeeded)
         {
             return BadRequest(ToApiResponse(result));
@@ -375,9 +411,13 @@ public sealed class AuthController(
         });
     }
 
-    [HttpGet("confirm-email")]
+    /// <summary>
+    /// Confirma o e-mail do usuário (legado).
+    /// Libera ações que exigem confirmação.
+    /// </summary>
+    [HttpPut("users/{userId:guid}/email-confirmation")]
     [AllowAnonymous]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> ConfirmEmail([FromRoute] Guid userId, [FromQuery] string token, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -450,10 +490,10 @@ public sealed class AuthController(
     {
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-        var confirmUrl = BuildApiUrl(_appUrlOptions.ApiBaseUrl, "confirm-email", user.Id, encodedToken);
+        var confirmUrl = BuildApiUrl(_appUrlOptions.ApiBaseUrl, user.Id, encodedToken);
 
         await _notificationService.SendAsync(new NotificationRequest(
-            NotificationChannel.Email,
+            ENotificationChannel.Email,
             NotificationReasons.EmailConfirmation,
             "Confirme seu e-mail",
             "Clique no botão abaixo para confirmar seu e-mail e liberar ações críticas.",
@@ -462,8 +502,8 @@ public sealed class AuthController(
             cancellationToken);
     }
 
-    private string BuildApiUrl(string baseUrl, string path, Guid userId, string token)
-        => $"{baseUrl.TrimEnd('/')}/api/auth/{path}?userId={userId}&token={token}";
+    private string BuildApiUrl(string baseUrl, Guid userId, string token)
+        => $"{baseUrl.TrimEnd('/')}/api/legacy/users/{userId}/email-confirmation?token={token}";
 
     private string BuildWebUrl(string baseUrl, string path, Guid userId, string token)
         => $"{baseUrl.TrimEnd('/')}/{path}?userId={userId}&token={token}";

@@ -1,10 +1,6 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
+
 using Microsoft.Extensions.Options;
 
 namespace ConvocadoFc.Infrastructure.Modules.Notifications.Email;

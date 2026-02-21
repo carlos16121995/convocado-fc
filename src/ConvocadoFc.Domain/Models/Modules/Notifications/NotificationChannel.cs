@@ -1,6 +1,12 @@
 namespace ConvocadoFc.Domain.Models.Modules.Notifications;
 
-public enum NotificationChannel
+/// <summary>
+/// Canais disponíveis para envio de notificações.
+/// </summary>
+public enum ENotificationChannel
 {
+    /// <summary>
+    /// Envio por e-mail.
+    /// </summary>
     Email = 0
 }

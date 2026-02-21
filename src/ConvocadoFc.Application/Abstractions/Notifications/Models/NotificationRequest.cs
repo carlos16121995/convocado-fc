@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace ConvocadoFc.Application.Abstractions.Notifications.Models;
 
 public sealed record NotificationRequest(
-    NotificationChannel Channel,
+    ENotificationChannel Channel,
     string Reason,
     string Title,
     string Message,

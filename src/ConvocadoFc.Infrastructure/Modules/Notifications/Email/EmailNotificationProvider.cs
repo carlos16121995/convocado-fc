@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
 using ConvocadoFc.Domain.Models.Modules.Notifications;
@@ -15,7 +11,7 @@ public sealed class EmailNotificationProvider(
     private readonly IMessageTransport<EmailMessage> _transport = transport;
     private readonly IEmailTemplateRenderer _templateRenderer = templateRenderer;
 
-    public NotificationChannel Channel => NotificationChannel.Email;
+    public ENotificationChannel Channel => ENotificationChannel.Email;
 
     public async Task SendAsync(NotificationRequest request, CancellationToken cancellationToken = default)
     {

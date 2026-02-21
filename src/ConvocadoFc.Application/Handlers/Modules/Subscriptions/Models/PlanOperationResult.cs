@@ -1,6 +1,6 @@
 namespace ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 
 public sealed record PlanOperationResult(
-    PlanOperationStatus Status,
+    EPlanOperationStatus Status,
     PlanDto? Plan
 );

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace ConvocadoFc.Domain.Models.Modules.Subscriptions;
 
 public sealed class Plan

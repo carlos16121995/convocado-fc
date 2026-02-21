@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using ConvocadoFc.Application.Abstractions;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Interfaces;
 using ConvocadoFc.Application.Handlers.Modules.Subscriptions.Models;
 using ConvocadoFc.Domain.Models.Modules.Subscriptions;
 using ConvocadoFc.Domain.Models.Modules.Users.Identity;
 using ConvocadoFc.Domain.Shared;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -74,24 +69,24 @@ public sealed class SubscriptionManagementHandler(
         var user = await _userManager.FindByIdAsync(command.OwnerUserId.ToString());
         if (user is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.UserNotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.UserNotFound, null);
         }
 
         var plan = await _dbContext.Query<Plan>()
             .FirstOrDefaultAsync(existing => existing.Id == command.PlanId && existing.IsActive, cancellationToken);
         if (plan is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.PlanNotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.PlanNotFound, null);
         }
 
         var hasActiveSubscription = await _dbContext.Query<Subscription>()
             .AnyAsync(subscription => subscription.OwnerUserId == command.OwnerUserId
-                                      && subscription.Status == SubscriptionStatus.Active,
+                                      && subscription.Status == ESubscriptionStatus.Active,
                 cancellationToken);
 
         if (hasActiveSubscription)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.ActiveSubscriptionExists, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.ActiveSubscriptionExists, null);
         }
 
         var subscription = new Subscription
@@ -99,7 +94,7 @@ public sealed class SubscriptionManagementHandler(
             Id = Guid.NewGuid(),
             OwnerUserId = command.OwnerUserId,
             PlanId = plan.Id,
-            Status = SubscriptionStatus.Active,
+            Status = ESubscriptionStatus.Active,
             StartsAt = command.StartsAt ?? DateTimeOffset.UtcNow,
             EndsAt = command.EndsAt,
             AutoRenew = command.AutoRenew,
@@ -116,7 +111,7 @@ public sealed class SubscriptionManagementHandler(
             NewPlanId = subscription.PlanId,
             OldStatus = null,
             NewStatus = subscription.Status,
-            Action = SubscriptionHistoryAction.Assigned,
+            Action = ESubscriptionHistoryAction.Assigned,
             ChangedByUserId = command.AssignedByUserId,
             OccurredAt = DateTimeOffset.UtcNow,
             Note = command.Note
@@ -129,7 +124,7 @@ public sealed class SubscriptionManagementHandler(
             await _dbContext.SaveChangesAsync(token);
         }, cancellationToken);
 
-        return new SubscriptionOperationResult(SubscriptionOperationStatus.Success, MapToDto(subscription, plan));
+        return new SubscriptionOperationResult(ESubscriptionOperationStatus.Success, MapToDto(subscription, plan));
     }
 
     public async Task<SubscriptionOperationResult> ChangeSubscriptionAsync(ChangeSubscriptionCommand command, CancellationToken cancellationToken)
@@ -139,7 +134,7 @@ public sealed class SubscriptionManagementHandler(
 
         if (subscription is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.NotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.NotFound, null);
         }
 
         Plan? plan = null;
@@ -150,7 +145,7 @@ public sealed class SubscriptionManagementHandler(
 
             if (plan is null)
             {
-                return new SubscriptionOperationResult(SubscriptionOperationStatus.PlanNotFound, null);
+                return new SubscriptionOperationResult(ESubscriptionOperationStatus.PlanNotFound, null);
             }
         }
 
@@ -177,7 +172,7 @@ public sealed class SubscriptionManagementHandler(
             subscription.Status = command.Status.Value;
         }
 
-        if (subscription.Status == SubscriptionStatus.Canceled)
+        if (subscription.Status == ESubscriptionStatus.Canceled)
         {
             subscription.CanceledAt ??= DateTimeOffset.UtcNow;
             subscription.EndsAt ??= DateTimeOffset.UtcNow;
@@ -194,7 +189,7 @@ public sealed class SubscriptionManagementHandler(
             NewPlanId = subscription.PlanId,
             OldStatus = oldStatus,
             NewStatus = subscription.Status,
-            Action = SubscriptionHistoryAction.Changed,
+            Action = ESubscriptionHistoryAction.Changed,
             ChangedByUserId = command.ChangedByUserId,
             OccurredAt = DateTimeOffset.UtcNow,
             Note = command.Note
@@ -211,10 +206,10 @@ public sealed class SubscriptionManagementHandler(
 
         if (plan is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.PlanNotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.PlanNotFound, null);
         }
 
-        return new SubscriptionOperationResult(SubscriptionOperationStatus.Success, MapToDto(subscription, plan));
+        return new SubscriptionOperationResult(ESubscriptionOperationStatus.Success, MapToDto(subscription, plan));
     }
 
     public async Task<SubscriptionOperationResult> RemoveSubscriptionAsync(RemoveSubscriptionCommand command, CancellationToken cancellationToken)
@@ -224,18 +219,18 @@ public sealed class SubscriptionManagementHandler(
 
         if (subscription is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.NotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.NotFound, null);
         }
 
-        if (subscription.Status != SubscriptionStatus.Active)
+        if (subscription.Status != ESubscriptionStatus.Active)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.SubscriptionNotActive, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.SubscriptionNotActive, null);
         }
 
         var oldStatus = subscription.Status;
         var oldPlanId = subscription.PlanId;
 
-        subscription.Status = SubscriptionStatus.Canceled;
+        subscription.Status = ESubscriptionStatus.Canceled;
         subscription.CanceledAt = DateTimeOffset.UtcNow;
         subscription.EndsAt ??= DateTimeOffset.UtcNow;
         subscription.UpdatedAt = DateTimeOffset.UtcNow;
@@ -249,7 +244,7 @@ public sealed class SubscriptionManagementHandler(
             NewPlanId = subscription.PlanId,
             OldStatus = oldStatus,
             NewStatus = subscription.Status,
-            Action = SubscriptionHistoryAction.Removed,
+            Action = ESubscriptionHistoryAction.Removed,
             ChangedByUserId = command.RemovedByUserId,
             OccurredAt = DateTimeOffset.UtcNow,
             Note = command.Note
@@ -266,10 +261,10 @@ public sealed class SubscriptionManagementHandler(
 
         if (plan is null)
         {
-            return new SubscriptionOperationResult(SubscriptionOperationStatus.PlanNotFound, null);
+            return new SubscriptionOperationResult(ESubscriptionOperationStatus.PlanNotFound, null);
         }
 
-        return new SubscriptionOperationResult(SubscriptionOperationStatus.Success, MapToDto(subscription, plan));
+        return new SubscriptionOperationResult(ESubscriptionOperationStatus.Success, MapToDto(subscription, plan));
     }
 
     private static IQueryable<Subscription> ApplySubscriptionFilters(IQueryable<Subscription> query, ListSubscriptionsQuery filters)

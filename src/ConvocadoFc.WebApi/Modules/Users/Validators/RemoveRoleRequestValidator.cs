@@ -7,9 +7,6 @@ public sealed class RemoveRoleRequestValidator : AbstractValidator<RemoveRoleReq
 {
     public RemoveRoleRequestValidator()
     {
-        RuleFor(request => request.UserId)
-            .NotEmpty();
-
         RuleFor(request => request.Role)
             .NotEmpty();
     }

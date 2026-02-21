@@ -11,9 +11,6 @@ public sealed class ResetPasswordRequestValidator : AbstractValidator<ResetPassw
         RuleFor(request => request.UserId)
             .NotEmpty();
 
-        RuleFor(request => request.Token)
-            .NotEmpty();
-
         RuleFor(request => request.NewPassword)
             .NotEmpty()
             .Matches(AuthConstants.PasswordRegex)
