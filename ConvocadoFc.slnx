@@ -5,4 +5,8 @@
     <Project Path="src/ConvocadoFc.Infrastructure/ConvocadoFc.Infrastructure.csproj" />
     <Project Path="src/ConvocadoFc.WebApi/ConvocadoFc.WebApi.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ConvocadoFc.Application.Tests/ConvocadoFc.Application.Tests.csproj" />
+    <Project Path="tests/ConvocadoFc.Infrastructure.Tests/ConvocadoFc.Infrastructure.Tests.csproj" />
+  </Folder>
 </Solution>
