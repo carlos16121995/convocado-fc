@@ -1,1 +1,0 @@
-namespace ConvocadoFc.WebApi.Tests;

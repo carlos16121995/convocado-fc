@@ -1,8 +1,0 @@
-using ConvocadoFc.Application.Handlers.Modules.Notifications.Models;
-
-namespace ConvocadoFc.Application.Handlers.Modules.Notifications.Interfaces;
-
-public interface IEmailTemplateRenderer
-{
-    Task<string> RenderAsync(EmailTemplateData data, CancellationToken cancellationToken = default);
-}

@@ -1,1 +1,0 @@
-namespace ConvocadoFc.Domain.Tests;
