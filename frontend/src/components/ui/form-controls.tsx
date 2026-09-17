@@ -1,4 +1,4 @@
-import { Children, forwardRef, isValidElement, useId, useMemo, useRef, useState, type ChangeEvent, type FocusEvent, type ForwardedRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { Children, forwardRef, isValidElement, useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type FocusEvent, type ForwardedRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { classes } from './utils'
 
 export function Label({ children, ...props }: { children: ReactNode } & React.LabelHTMLAttributes<HTMLLabelElement>) {
@@ -58,10 +58,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const nativeSelectRef = useRef<HTMLSelectElement>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ''))
+  const [activeIndex, setActiveIndex] = useState(0)
   const selectedValue = value === undefined ? internalValue : String(value)
   const options = useMemo(() => selectOptionsFromChildren(children), [children])
   const selectedOption = options.find((option) => option.value === selectedValue)
   const placeholder = options.find((option) => option.disabled && option.value === '')
+  const enabledOptions = options.filter((option) => !option.disabled)
+
+  function openAt(index: number) {
+    const selectedIndex = enabledOptions.findIndex((option) => option.value === selectedValue)
+    setActiveIndex(index < 0 ? Math.max(0, selectedIndex) : Math.min(index, Math.max(0, enabledOptions.length - 1)))
+    setIsOpen(true)
+  }
 
   function selectOption(option: SelectOption) {
     if (option.disabled) return
@@ -80,25 +88,45 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       setIsOpen(false)
       onBlur?.(event as unknown as FocusEvent<HTMLSelectElement>)
     }}>
-      <select aria-hidden="true" className="ui-select__native" disabled={disabled} name={name} onChange={onChange} ref={(element) => {
+      <select aria-hidden="true" className="ui-select__native" disabled={disabled} name={name} onChange={onChange ?? (() => undefined)} ref={(element) => {
         nativeSelectRef.current = element
         assignForwardedRef(ref, element)
       }} tabIndex={-1} value={selectedValue} {...nativeProps}>{children}</select>
       <button
         aria-controls={listId}
+        aria-activedescendant={isOpen && enabledOptions[activeIndex] ? `${listId}-${enabledOptions[activeIndex].value}` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-invalid={invalid || nativeProps['aria-invalid']}
         className={classes('ui-select', invalid && 'ui-input--invalid', className)}
         disabled={disabled}
         id={selectId}
-        onClick={() => setIsOpen((open) => !open)}
+        onClick={() => isOpen ? setIsOpen(false) : openAt(-1)}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown') {
             event.preventDefault()
-            setIsOpen(true)
+            openAt(isOpen ? activeIndex + 1 : -1)
           }
-          if (event.key === 'Escape') setIsOpen(false)
+          if (event.key === 'ArrowUp') {
+            event.preventDefault()
+            openAt(isOpen ? activeIndex - 1 : enabledOptions.length - 1)
+          }
+          if (event.key === 'Home') {
+            event.preventDefault()
+            openAt(0)
+          }
+          if (event.key === 'End') {
+            event.preventDefault()
+            openAt(enabledOptions.length - 1)
+          }
+          if ((event.key === 'Enter' || event.key === ' ') && isOpen && enabledOptions[activeIndex]) {
+            event.preventDefault()
+            selectOption(enabledOptions[activeIndex])
+          }
+          if (event.key === 'Escape') {
+            setIsOpen(false)
+            triggerRef.current?.focus()
+          }
         }}
         ref={triggerRef}
         type="button"
@@ -108,13 +136,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       </button>
       {isOpen && !disabled && (
         <ul className="ui-select__menu" id={listId} role="listbox">
-          {options.map((option) => (
-            <li key={option.value} role="none">
-              <button aria-selected={option.value === selectedValue} disabled={option.disabled} onClick={() => selectOption(option)} type="button">
+          {options.map((option) => {
+            const optionIndex = enabledOptions.findIndex((item) => item.value === option.value)
+            return (
+            <li id={`${listId}-${option.value}`} key={option.value} role="option" aria-selected={option.value === selectedValue} data-active={optionIndex === activeIndex && !option.disabled}>
+              <button disabled={option.disabled} onMouseDown={(event) => event.preventDefault()} onClick={() => selectOption(option)} tabIndex={-1} type="button">
                 {option.label}
               </button>
             </li>
-          ))}
+          )})}
         </ul>
       )}
     </span>
@@ -163,12 +193,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
   const inputId = id ?? generatedId
   const pickerId = `${inputId}-picker`
   const nativeDateRef = useRef<HTMLInputElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [internalValue, setInternalValue] = useState(defaultValue)
   const selectedValue = value ?? internalValue
   const selectedDate = parseDateValue(selectedValue, mode)
   const [isOpen, setIsOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => selectedDate ?? new Date())
-  const currentDate = new Date()
+  const currentDate = useMemo(() => new Date(), [])
   const viewYear = viewDate.getFullYear()
   const viewMonth = viewDate.getMonth()
   const daysInViewMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
@@ -177,6 +209,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
     const day = index - firstWeekDay + 1
     return day > 0 && day <= daysInViewMonth ? day : undefined
   }), [daysInViewMonth, firstWeekDay])
+
+  useEffect(() => {
+    if (!isOpen || mode !== 'date') return
+    const focusDate = parseDateValue(selectedValue, mode) ?? currentDate
+    if (focusDate.getFullYear() !== viewYear || focusDate.getMonth() !== viewMonth) return
+    const valueToFocus = toDateValue(focusDate, mode)
+    requestAnimationFrame(() => dayRefs.current[valueToFocus]?.focus())
+  }, [currentDate, isOpen, mode, selectedValue, viewMonth, viewYear])
 
   function changeValue(nextValue: string) {
     if (value === undefined) setInternalValue(nextValue)
@@ -190,6 +230,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
     changeValue(toDateValue(date, mode))
     setViewDate(date)
     setIsOpen(false)
+    requestAnimationFrame(() => triggerRef.current?.focus())
+  }
+
+  function moveCalendarFocus(date: Date, days: number) {
+    const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + days)
+    const nextValue = toDateValue(nextDate, mode)
+    setViewDate(nextDate)
+    requestAnimationFrame(() => dayRefs.current[nextValue]?.focus())
   }
 
   function isUnavailable(date: Date) {
@@ -203,7 +251,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
       setIsOpen(false)
       onBlur?.(event as unknown as FocusEvent<HTMLInputElement>)
     }}>
-      <input aria-hidden="true" className="ui-date-input__native" disabled={disabled} name={name} onChange={onChange} ref={(element) => {
+      <input aria-hidden="true" className="ui-date-input__native" disabled={disabled} name={name} onChange={onChange ?? (() => undefined)} readOnly ref={(element) => {
         nativeDateRef.current = element
         assignForwardedRef(ref, element)
       }} tabIndex={-1} type="text" value={selectedValue} {...props} />
@@ -218,6 +266,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
         onKeyDown={(event) => {
           if (event.key === 'Escape') setIsOpen(false)
         }}
+        ref={triggerRef}
         type="button"
       >
         <span>{formatDateValue(selectedValue, mode)}</span>
@@ -225,7 +274,10 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
       </button>
       {isOpen && !disabled && (
         <div aria-label={mode === 'date' ? 'Selecionar data' : 'Selecionar mês'} className="ui-date-picker" id={pickerId} onKeyDown={(event) => {
-          if (event.key === 'Escape') setIsOpen(false)
+          if (event.key === 'Escape') {
+            setIsOpen(false)
+            triggerRef.current?.focus()
+          }
         }} role="dialog">
           <div className="ui-date-picker__header">
             <button aria-label={mode === 'date' ? 'Mês anterior' : 'Ano anterior'} className="ui-date-picker__navigation" onClick={() => setViewDate(new Date(viewYear, viewMonth - (mode === 'date' ? 1 : 12), 1))} type="button">‹</button>
@@ -241,7 +293,26 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(function D
                 const dateValue = toDateValue(date, mode)
                 const isSelected = dateValue === selectedValue
                 const isToday = dateValue === toDateValue(currentDate, mode)
-                return <button aria-label={`${day} de ${monthNames[viewMonth]} de ${viewYear}`} aria-pressed={isSelected} className="ui-date-picker__day" data-selected={isSelected} data-today={isToday} disabled={isUnavailable(date)} key={dateValue} onClick={() => selectDate(date)} type="button">{day}</button>
+                return <button aria-label={`${day} de ${monthNames[viewMonth]} de ${viewYear}`} aria-pressed={isSelected} className="ui-date-picker__day" data-selected={isSelected} data-today={isToday} disabled={isUnavailable(date)} key={dateValue} onClick={() => selectDate(date)} onKeyDown={(event) => {
+                  const keyOffsets: Record<string, number> = { ArrowDown: 7, ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7 }
+                  if (keyOffsets[event.key] !== undefined) {
+                    event.preventDefault()
+                    moveCalendarFocus(date, keyOffsets[event.key])
+                  }
+                  if (event.key === 'Home') {
+                    event.preventDefault()
+                    moveCalendarFocus(date, -date.getDay())
+                  }
+                  if (event.key === 'End') {
+                    event.preventDefault()
+                    moveCalendarFocus(date, 6 - date.getDay())
+                  }
+                  if (event.key === 'Escape') {
+                    event.preventDefault()
+                    setIsOpen(false)
+                    triggerRef.current?.focus()
+                  }
+                }} ref={(element) => { dayRefs.current[dateValue] = element }} type="button">{day}</button>
               })}
             </div>
           ) : (
@@ -282,6 +353,7 @@ export function AutocompleteSelect({ disabled = false, emptyMessage = 'Nenhuma o
   const listId = `${inputId}-options`
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
   const selectedOption = options.find((option) => option.value === value)
   const filteredOptions = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('pt-BR')
@@ -296,15 +368,26 @@ export function AutocompleteSelect({ disabled = false, emptyMessage = 'Nenhuma o
     setIsOpen(false)
   }
 
+  function moveActive(step: number) {
+    if (filteredOptions.length === 0) return
+    setActiveIndex((current) => (current + step + filteredOptions.length) % filteredOptions.length)
+    setIsOpen(true)
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setIsOpen(true)
+      moveActive(1)
     }
 
-    if (event.key === 'Enter' && filteredOptions[0]) {
+    if (event.key === 'ArrowUp') {
       event.preventDefault()
-      selectOption(filteredOptions[0])
+      moveActive(-1)
+    }
+
+    if (event.key === 'Enter' && filteredOptions[activeIndex]) {
+      event.preventDefault()
+      selectOption(filteredOptions[activeIndex])
     }
 
     if (event.key === 'Escape') {
@@ -318,6 +401,7 @@ export function AutocompleteSelect({ disabled = false, emptyMessage = 'Nenhuma o
     }}>
       <input
         aria-autocomplete="list"
+        aria-activedescendant={isOpen && filteredOptions[activeIndex] ? `${listId}-${filteredOptions[activeIndex].value}` : undefined}
         aria-controls={listId}
         aria-expanded={isOpen}
         aria-invalid={invalid}
@@ -326,10 +410,12 @@ export function AutocompleteSelect({ disabled = false, emptyMessage = 'Nenhuma o
         id={inputId}
         onChange={(event) => {
           setQuery(event.target.value)
+          setActiveIndex(0)
           setIsOpen(true)
         }}
         onFocus={() => {
           setQuery('')
+          setActiveIndex(0)
           setIsOpen(true)
         }}
         onKeyDown={handleKeyDown}
@@ -342,7 +428,7 @@ export function AutocompleteSelect({ disabled = false, emptyMessage = 'Nenhuma o
       {isOpen && !disabled && (
         <ul className="ui-autocomplete__menu" id={listId} role="listbox">
           {filteredOptions.length > 0 ? filteredOptions.map((option) => (
-            <li aria-selected={option.value === value} key={option.value} role="option">
+            <li aria-selected={option.value === value} data-active={option === filteredOptions[activeIndex]} id={`${listId}-${option.value}`} key={option.value} role="option">
               <button onClick={() => selectOption(option)} onMouseDown={(event) => event.preventDefault()} type="button">
                 <span>{option.label}</span>
                 {option.description && <small>{option.description}</small>}
@@ -360,9 +446,16 @@ export function MultiAutocompleteSelect({ id, onValuesChange, options, placehold
   const inputId = id ?? generatedId
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
   const filteredOptions = useMemo(() => options.filter((option) => !values.includes(option.value) && `${option.label} ${option.description ?? ''}`.toLocaleLowerCase('pt-BR').includes(query.trim().toLocaleLowerCase('pt-BR'))), [options, query, values])
   const selectedOptions = options.filter((option) => values.includes(option.value))
-  return <div className="ui-multi-autocomplete" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false) }}><div className="ui-multi-autocomplete__control">{selectedOptions.map((option) => <button aria-label={`Remover ${option.label}`} className="ui-multi-autocomplete__tag" key={option.value} onClick={() => onValuesChange(values.filter((value) => value !== option.value))} type="button">{option.label} ×</button>)}<input aria-controls={`${inputId}-options`} aria-expanded={isOpen} aria-label="Filtrar opções" className="ui-multi-autocomplete__input" id={inputId} onChange={(event) => { setQuery(event.target.value); setIsOpen(true) }} onFocus={() => setIsOpen(true)} placeholder={selectedOptions.length ? '' : placeholder} role="combobox" value={query} /></div>{isOpen && <ul className="ui-autocomplete__menu" id={`${inputId}-options`} role="listbox">{filteredOptions.length ? filteredOptions.map((option) => <li key={option.value} role="option"><button onClick={() => { onValuesChange([...values, option.value]); setQuery('') }} type="button"><span>{option.label}</span>{option.description && <small>{option.description}</small>}</button></li>) : <li className="ui-autocomplete__empty">Nenhuma opção encontrada.</li>}</ul>}</div>
+  function selectOption(option: AutocompleteOption) {
+    onValuesChange([...values, option.value])
+    setQuery('')
+    setActiveIndex(0)
+  }
+
+  return <div className="ui-multi-autocomplete" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false) }}><div className="ui-multi-autocomplete__control">{selectedOptions.map((option) => <button aria-label={`Remover ${option.label}`} className="ui-multi-autocomplete__tag" key={option.value} onClick={() => onValuesChange(values.filter((value) => value !== option.value))} type="button">{option.label} ×</button>)}<input aria-activedescendant={isOpen && filteredOptions[activeIndex] ? `${inputId}-options-${filteredOptions[activeIndex].value}` : undefined} aria-autocomplete="list" aria-controls={`${inputId}-options`} aria-expanded={isOpen} aria-label="Filtrar opções" className="ui-multi-autocomplete__input" id={inputId} onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); setIsOpen(true) }} onFocus={() => { setActiveIndex(0); setIsOpen(true) }} onKeyDown={(event) => { if (event.key === 'ArrowDown' && filteredOptions.length) { event.preventDefault(); setActiveIndex((current) => (current + 1) % filteredOptions.length); setIsOpen(true) } if (event.key === 'ArrowUp' && filteredOptions.length) { event.preventDefault(); setActiveIndex((current) => (current - 1 + filteredOptions.length) % filteredOptions.length); setIsOpen(true) } if (event.key === 'Enter' && filteredOptions[activeIndex]) { event.preventDefault(); selectOption(filteredOptions[activeIndex]) } if (event.key === 'Escape') setIsOpen(false) }} placeholder={selectedOptions.length ? '' : placeholder} role="combobox" value={query} /></div>{isOpen && <ul className="ui-autocomplete__menu" id={`${inputId}-options`} role="listbox">{filteredOptions.length ? filteredOptions.map((option, index) => <li aria-selected="false" data-active={index === activeIndex} id={`${inputId}-options-${option.value}`} key={option.value} role="option"><button onMouseDown={(event) => event.preventDefault()} onClick={() => selectOption(option)} tabIndex={-1} type="button"><span>{option.label}</span>{option.description && <small>{option.description}</small>}</button></li>) : <li className="ui-autocomplete__empty">Nenhuma opção encontrada.</li>}</ul>}</div>
 }
 
 type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & { label: ReactNode }

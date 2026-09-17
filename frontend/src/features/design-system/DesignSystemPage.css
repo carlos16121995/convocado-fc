@@ -23,3 +23,9 @@
 @media (max-width: 54rem) { .ds-menu-avatar-example { border-left: 0; border-top: 1px solid var(--color-border); margin-left: 0; padding-left: 0; padding-top: var(--space-4); width: 100%; } }
 @media (min-width: 64rem) { .ds-sidebar-wrap { min-width: 0; } .ds-sidebar-wrap > .ui-sidebar { bottom: 0; left: 0; position: fixed; top: 5rem; width: 16rem; } .ds-layout:has(.ui-sidebar--collapsed) .ds-sidebar-wrap > .ui-sidebar { width: 4.5rem; } }
 .ds-sidebar-wrap > .ui-sidebar { box-shadow: none; }
+
+.ds-eyebrow, .ds-typography a, .ds-icon-card svg, .ds-jersey-card svg { color: var(--color-primary-foreground); }
+.ds-token-card span { font-size: var(--font-size-sm); }
+.ds-icon-card strong { font-size: var(--font-size-sm); }
+.ds-icon-card code { font-size: var(--font-size-xs); }
+.ds-caption { font-size: var(--font-size-sm); }

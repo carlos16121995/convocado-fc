@@ -39,6 +39,14 @@
   tema. Bola, cone, luva de goleiro, chuteira com travas, grama, traves e
   placar são vetores próprios; a caneleira usa o ícone `ShieldCheck`.
   `JerseyIcon` cobre números de camisa de 1 a 999 centralizados.
+- `primary` é reservado para preenchimentos e destaque de marca. Conteúdo
+  legível sobre fundos claros (links, ícones e estados de hover) usa
+  `primary-foreground`, que mantém contraste suficiente sem descaracterizar a
+  marca. Tokens também centralizam escala tipográfica e duração de movimento.
+- Controles públicos compostos precisam preservar teclado e foco: Select e
+  autocomplete expõem opção ativa e suportam setas, Enter e Escape; DateInput
+  permite navegar os dias por teclado. Alvos de toque têm área mínima de 44px
+  quando o contexto permitir, e toda animação respeita `prefers-reduced-motion`.
 
 ## Estrutura inicial
 

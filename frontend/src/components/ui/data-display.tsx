@@ -63,7 +63,7 @@ export function Table({ caption, columns, expandable = false, rows }: { caption:
                   {expandable && <td className="ui-table__expand-cell"><button aria-expanded={isExpanded} aria-label={`${isExpanded ? 'Minimizar' : 'Expandir'} detalhes da linha`} className="ui-table__expand" onClick={() => setExpandedRowId(isExpanded ? null : row.id)} type="button">⌄</button></td>}
                   {columns.map((column) => <td key={column.key}>{row.cells[column.key]}</td>)}
                 </tr>
-                {expandable && row.details && <tr className="ui-table__details" data-expanded={isExpanded}><td colSpan={columns.length + 1}><div aria-hidden={!isExpanded} className="ui-table__details-content"><div className="ui-table__details-content-inner">{row.details}</div></div></td></tr>}
+                {expandable && row.details && <tr className="ui-table__details" data-expanded={isExpanded}><td colSpan={columns.length + 1}><div aria-hidden={!isExpanded} className="ui-table__details-content" inert={!isExpanded}><div className="ui-table__details-content-inner">{row.details}</div></div></td></tr>}
               </Fragment>
             )
           })}

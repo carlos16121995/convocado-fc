@@ -276,7 +276,7 @@ function ButtonsAndInputs({ visible = true }: { visible?: boolean }) {
           <Card>
             <CardHeader><CardTitle>Overlay e feedback</CardTitle></CardHeader>
             <div className="ds-field-stack">
-              <Tooltip content="Descrição adicional exibida por toque, foco ou hover."><Button variant="outline">Tooltip</Button></Tooltip>
+              <Tooltip content="Descrição adicional exibida por foco ou hover; informações essenciais devem permanecer visíveis."><Button variant="outline">Tooltip</Button></Tooltip>
               <Dropdown label="Abrir dropdown"><DropdownItem>Editar</DropdownItem><DropdownItem>Duplicar</DropdownItem><DropdownItem>Arquivar</DropdownItem></Dropdown>
               <Skeleton className="ds-skeleton-line" /><Skeleton className="ds-skeleton-line ds-skeleton-line--short" />
               <span className="ds-spinner-sample"><Spinner size="lg" tone="processing" /> Processando</span>

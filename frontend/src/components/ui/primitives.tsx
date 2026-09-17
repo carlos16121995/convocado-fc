@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, useState, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react'
 import { classes } from './utils'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
@@ -67,5 +67,16 @@ export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>
 }
 
 export function Tooltip({ children, content }: { children: ReactNode; content: string }) {
-  return <span className="ui-tooltip" data-tooltip={content}>{children}</span>
+  const [isVisible, setIsVisible] = useState(false)
+  const tooltipId = useId()
+  const child = isValidElement<{ 'aria-describedby'?: string }>(children)
+    ? cloneElement(children, { 'aria-describedby': isVisible ? tooltipId : undefined })
+    : children
+
+  return (
+    <span className="ui-tooltip" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsVisible(false) }} onFocus={() => setIsVisible(true)} onMouseEnter={() => setIsVisible(true)} onMouseLeave={() => setIsVisible(false)}>
+      {child}
+      {isVisible && <span className="ui-tooltip__content" id={tooltipId} role="tooltip">{content}</span>}
+    </span>
+  )
 }

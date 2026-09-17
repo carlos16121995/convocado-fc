@@ -195,3 +195,35 @@
 .ui-sidebar__account .ui-profile-avatar { flex: 0 0 2.5rem; height: 2.5rem; width: 2.5rem; }
 .ui-sidebar__account .ui-profile-avatar__photo { height: 2.5rem; width: 2.5rem; }
 .ui-sidebar__avatar { overflow: hidden; }.ui-sidebar__avatar img { height: 100%; object-fit: cover; width: 100%; }
+
+/* UX foundations: the brand fill is intentionally distinct from readable text/icon green. */
+.ui-button { min-height: 2.75rem; font-weight: var(--font-weight-bold); transition-duration: var(--motion-fast); }
+.ui-button--primary:hover:not(:disabled) { background: var(--color-surface-active); color: var(--color-primary-foreground); }
+.ui-tooltip::after { content: none; }
+.ui-tooltip__content { background: var(--color-text); border-radius: var(--radius-sm); color: var(--color-background); font-size: var(--font-size-xs); left: 50%; max-width: min(18rem, calc(100vw - 2rem)); padding: var(--space-2); pointer-events: none; position: absolute; top: calc(100% + var(--space-2)); transform: translateX(-50%); white-space: normal; z-index: 5; }
+.ui-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.ui-field-message { font-size: var(--font-size-sm); }
+.ui-badge { font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); }
+.ui-select-field__indicator, .ui-date-input__indicator, .ui-autocomplete__indicator { color: var(--color-primary-foreground); }
+.ui-select-field:focus-within .ui-select-field__indicator { color: var(--color-primary-foreground); }
+.ui-select__menu [data-active='true'], .ui-autocomplete__menu [data-active='true'] { background: var(--color-surface-active); color: var(--color-text); outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.ui-date-picker__navigation, .ui-date-picker__action, .ui-date-picker__day[data-today='true'] { color: var(--color-primary-foreground); }
+.ui-date-picker__day[data-today='true'] { border-color: var(--color-primary-foreground); }
+.ui-check-control, .ui-switch-control { min-height: 2.75rem; }
+.ui-dropdown summary { min-height: 2.75rem; display: inline-flex; align-items: center; }
+.ui-sidebar__link .ui-icon:first-child, .ui-sidebar__submenu .ui-icon { color: var(--color-primary-foreground); }
+.ui-sidebar__link:focus-visible, .ui-sidebar__submenu a:focus-visible, .ui-sidebar__switcher:focus-visible, .ui-sidebar__toggle:focus-visible, .ui-sidebar__logout:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.ui-sidebar__brand-copy small, .ui-sidebar__switcher small, .ui-sidebar__user small { font-size: var(--font-size-xs); }
+.ui-accordion__trigger span, .ui-table__sort:hover, .ui-table__sort span, .ui-table__expand { color: var(--color-primary-foreground); }
+.ui-table__sort { min-height: 2.75rem; padding: var(--space-2) 0; }
+.ui-carousel__dot { align-items: center; background: transparent; display: inline-flex; height: 2.75rem; justify-content: center; position: relative; width: 2.75rem; }
+.ui-carousel__dot::after { background: var(--color-border-strong); border-radius: 50%; content: ''; height: 0.625rem; width: 0.625rem; }
+.ui-carousel__dot[aria-pressed='true'] { background: transparent; transform: none; }
+.ui-carousel__dot[aria-pressed='true']::after { background: var(--color-primary-foreground); transform: scale(1.25); }
+.ui-carousel__dot:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.ui-profile-avatar__position::before { content: ''; height: 2.75rem; left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 2.75rem; }
+.ui-profile-avatar__position > svg { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 1ms !important; }
+}
