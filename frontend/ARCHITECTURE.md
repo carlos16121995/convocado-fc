@@ -12,6 +12,16 @@
 - Infraestrutura HTTP compartilhada fica em `src/shared/api`; operações específicas ficam próximas da feature.
 - Testes usam Vitest + Testing Library; fluxos E2E usam Playwright.
 - Não serão criadas camadas genéricas, containers de DI ou estruturas de features vazias sem um caso de uso concreto.
+- O Design System público fica em `src/components/ui`: tokens CSS semânticos,
+  `ThemeProvider` e componentes reutilizáveis. Componentes consomem tokens e
+  não possuem ramificações específicas para temas claros ou escuros.
+- A rota interna `/design-system` é a documentação executável do sistema visual;
+  ela compõe os componentes públicos, mas não contém regras de negócio.
+- A paleta base usa `#03BB85`, `#1E8768`, `#235446`, `#20332D`, `#2A3330`,
+  `#2D383A` e `#F8F8FF`. `warning` representa aviso em amarelo, `alert`
+  representa alerta em laranja, `danger` representa erro em vermelho,
+  `success` é um verde distinto da cor de marca e `processing` é azul.
+  `info` permanece como alias de compatibilidade para `processing`.
 
 ## Estrutura inicial
 

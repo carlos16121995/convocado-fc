@@ -1,5 +1,5 @@
-main { max-width: 720px; margin: 12rem auto; padding: 2rem; }
-.eyebrow { color: #4667d9; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-h1 { font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: 1.05; margin: 1rem 0; }
-p { color: #526078; font-size: 1.1rem; line-height: 1.6; }
-.link { display: inline-block; margin-top: 1rem; color: #4667d9; font-weight: 700; }
+.app-page { margin: 0 auto; max-width: 45rem; padding: clamp(2rem, 10vw, 8rem) var(--space-4); }
+.app-page h1 { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1; margin: var(--space-3) 0; }
+.app-page p:not(.app-eyebrow) { color: var(--color-text-secondary); line-height: 1.6; }
+.app-eyebrow { color: var(--color-primary); font-size: 0.8125rem; font-weight: 800; letter-spacing: 0.08em; margin: 0; text-transform: uppercase; }
+.app-link { color: var(--color-primary); display: inline-block; font-weight: 700; margin-right: var(--space-4); margin-top: var(--space-3); }
