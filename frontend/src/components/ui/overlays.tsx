@@ -47,3 +47,18 @@ export function Toast({ children, onDismiss, tone = 'info' }: { children: ReactN
     </div>
   )
 }
+
+export function InlineConfirmation({ cancelLabel = 'Cancelar', confirmLabel = 'Confirmar', description, onCancel, onConfirm, title }: { cancelLabel?: string; confirmLabel?: string; description?: string; onCancel: () => void; onConfirm: () => void; title: string }) {
+  return (
+    <section className="ui-inline-confirmation" role="alert">
+      <div>
+        <strong>{title}</strong>
+        {description && <p>{description}</p>}
+      </div>
+      <div className="ui-inline-confirmation__actions">
+        <Button onClick={onCancel} variant="outline">{cancelLabel}</Button>
+        <Button onClick={onConfirm} variant="destructive">{confirmLabel}</Button>
+      </div>
+    </section>
+  )
+}
