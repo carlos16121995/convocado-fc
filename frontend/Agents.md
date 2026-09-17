@@ -65,6 +65,33 @@ notificationService.requestPermission()
 - Confirme que os fluxos essenciais podem ser executados por toque, sem depender de hover.
 - Execute `npm run build` e, quando aplicável, `npm run lint` e os testes direcionados.
 
+## Design System
+
+Toda interface deve utilizar os componentes e design tokens definidos pelo
+Design System.
+
+É proibido:
+
+- utilizar cores hex/rgb diretamente em features;
+- criar espaçamentos arbitrários;
+- criar componentes locais quando existir equivalente no Design System;
+- implementar estilos específicos para dark mode dentro de features;
+- duplicar componentes do Design System.
+
+Antes de criar um novo componente visual, verifique se o Design System já
+possui um componente equivalente.
+
+Todo componente interativo deve suportar, quando aplicável:
+
+- tema claro e escuro;
+- navegação por teclado;
+- foco visível;
+- estado desabilitado;
+- layouts responsivos;
+- interação mobile/toque;
+- estados de loading, vazio e erro;
+- semântica HTML e atributos ARIA necessários.
+
 ## Objetivo arquitetural
 
 Preserve a evolução do frontend nesta direção:
