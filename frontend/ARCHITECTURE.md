@@ -10,6 +10,9 @@
 - Formulários usam React Hook Form e validação com Zod, derivando tipos com `z.infer` quando aplicável.
 - Contratos da API devem ser gerados a partir do OpenAPI do backend, separados de tipos específicos de UI.
 - Infraestrutura HTTP compartilhada fica em `src/shared/api`; operações específicas ficam próximas da feature.
+- A URL pública da API é centralizada em `src/shared/config/environment.ts`.
+  Tipos de transporte são gerados do OpenAPI em `src/shared/api/generated` por
+  `npm run api:generate`, com a API de desenvolvimento em execução.
 - Testes usam Vitest + Testing Library; fluxos E2E usam Playwright.
 - Não serão criadas camadas genéricas, containers de DI ou estruturas de features vazias sem um caso de uso concreto.
 - O Design System público fica em `src/components/ui`: tokens CSS semânticos,

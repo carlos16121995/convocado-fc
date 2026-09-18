@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import {
   Accordion,
@@ -318,7 +318,7 @@ function FormExample({ visible = true }: { visible?: boolean }) {
     defaultValues: { category: '', name: '', notifications: true, terms: false },
     resolver: zodResolver(formSchema),
   })
-  const notifications = form.watch('notifications')
+  const notifications = useWatch({ control: form.control, name: 'notifications' })
 
   if (!visible) return null
   return (

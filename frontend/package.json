@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "api:generate": "openapi-ts -i http://127.0.0.1:5080/openapi/v1.json -o src/shared/api/generated --no-log-file"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -23,6 +24,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
     "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -36,5 +38,8 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
+  },
+  "overrides": {
+    "js-yaml": "4.3.2"
   }
 }

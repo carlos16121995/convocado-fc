@@ -1,5 +1,15 @@
 # Instruções para agentes
 
+## Configuração e segredos
+
+- Centralize as variáveis de ambiente e os valores de configuração em um único
+  arquivo de configuração do frontend, para facilitar mudanças futuras.
+- Não espalhe leituras de `import.meta.env` pelas features ou componentes; use
+  o módulo centralizado para expor somente a configuração necessária.
+- O bundle do frontend é público: nenhum segredo real deve ser incluído nele.
+  Credenciais sensíveis devem permanecer no backend, mesmo que sua referência
+  de configuração esteja centralizada no frontend.
+
 ## Responsividade e compatibilidade mobile
 
 O frontend deve ser desenvolvido com abordagem responsive-first e permanecer preparado para futura distribuição como aplicativo Android/iOS usando Capacitor, sem exigir uma reescrita significativa.

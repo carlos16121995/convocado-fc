@@ -1,0 +1,5 @@
+.availability-page { display: grid; gap: var(--space-5); }
+.availability-page__header { max-width: 40rem; }
+.availability-page__header h1 { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1; margin: var(--space-3) 0; }
+.availability-page__header p:not(.app-eyebrow), .availability-page__success { color: var(--color-text-secondary); line-height: 1.6; }
+.availability-page__success { margin: var(--space-3) 0 0; }
